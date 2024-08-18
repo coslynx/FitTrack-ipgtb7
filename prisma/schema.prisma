@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(auto()) @map("user_id")
+  email     String   @unique
+  password  String
+  name      String?
+  goals     Goal[]
+  activities Activity[]
+  posts     Post[]
+}
+
+model Goal {
+  id         Int      @id @default(auto()) @map("goal_id")
+  title      String
+  description String?
+  target     String?
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  activities Activity[]
+}
+
+model Activity {
+  id        Int      @id @default(auto()) @map("activity_id")
+  title      String
+  description String?
+  progress   Int
+  createdAt  DateTime @default(now())
+  goal       Goal     @relation(fields: [goalId], references: [id])
+  goalId     Int
+}
+
+model Post {
+  id        Int      @id @default(auto()) @map("post_id")
+  content    String
+  createdAt  DateTime @default(now())
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   Int
+  likes     User[]   @relation("PostLikes")
+}
+
+model Comment {
+  id        Int      @id @default(auto()) @map("comment_id")
+  content    String
+  createdAt  DateTime @default(now())
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   Int
+  post       Post     @relation(fields: [postId], references: [id])
+  postId     Int
+}
+
+model GoalCategory {
+  id        Int      @id @default(auto()) @map("goal_category_id")
+  name      String   @unique
+  goals     Goal[]
+}
+
+model Challenge {
+  id          Int      @id @default(auto()) @map("challenge_id")
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  participants User[]   @relation("ChallengeParticipants")
+}
+
+model Achievement {
+  id          Int      @id @default(auto()) @map("achievement_id")
+  name        String
+  description String?
+  imageUrl    String?
+  users       User[]   @relation("UserAchievements")
+}
+
+model Friendship {
+  id        Int      @id @default(auto()) @map("friendship_id")
+  user1      User     @relation(fields: [user1Id], references: [id])
+  user1Id    Int
+  user2      User     @relation(fields: [user2Id], references: [id])
+  user2Id    Int
+}
+
+model Notification {
+  id        Int      @id @default(auto()) @map("notification_id")
+  message    String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  read       Boolean   @default(false)
+}
+
+model UserAchievement {
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int
+  achievement  Achievement @relation(fields: [achievementId], references: [id])
+  achievementId Int
+}
+
+model ChallengeParticipants {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  challenge Challenge @relation(fields: [challengeId], references: [id])
+  challengeId Int
+}
+
+model PostLikes {
+  user  User  @relation(fields: [userId], references: [id])
+  userId Int
+  post  Post  @relation(fields: [postId], references: [id])
+  postId Int
+}
